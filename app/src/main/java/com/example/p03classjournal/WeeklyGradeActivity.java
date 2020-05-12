@@ -41,15 +41,17 @@ public class WeeklyGradeActivity extends AppCompatActivity {
         DailyCA w3 = new DailyCA("A", "C347", 3);
         CA.add(w3);
 
-        final Intent moduleIntent = getIntent();
+        Intent moduleIntent = getIntent();
 
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
         moduleCode = moduleIntent.getStringExtra("module");
         email = moduleIntent.getStringExtra("email");
+
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
         setTitle("Info for " + moduleCode);
 
         aa = new GradeAdapter(this, R.layout.row_module_info, CA);
         lvGrade.setAdapter(aa);
+        lvGrade.refreshDrawableState();
 
         btnInfo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,7 +79,13 @@ public class WeeklyGradeActivity extends AppCompatActivity {
                 emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{email});
                 emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Daily Grade for " + moduleCode);
 
-                msgContent = "Hi Faci \n\nI am ... \nPlease see my remarks so far, thank you!";
+                msgContent = "Hi Faci \n\nI am ... \nPlease see my remarks so far, thank you!\n\n";
+                for(int i = 0; i < CA.size(); i++) {
+                    String grade = CA.get(i).getDgGrade();
+                    int num = CA.get(i).getWeek();
+
+                    msgContent += "Week " + num + " DG: " + grade + "\n";
+                }
                 emailIntent.putExtra(Intent.EXTRA_TEXT, msgContent);
 
                 emailIntent.setType("message/rfc822");
@@ -85,5 +93,21 @@ public class WeeklyGradeActivity extends AppCompatActivity {
                 startActivity(Intent.createChooser(emailIntent, "Choose an Email Client:"));
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(resultCode == RESULT_OK) {
+            if(data != null) {
+                DailyCA newGrade = (DailyCA) data.getSerializableExtra("newGrade");
+                CA.add(newGrade);
+
+                aa = new GradeAdapter(this, R.layout.activity_weekly_grade, CA);
+                lvGrade.setAdapter(aa);
+                lvGrade.refreshDrawableState();
+            }
+        }
     }
 }
